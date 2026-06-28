@@ -3,12 +3,14 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+const path = require('path');
+
 const app = express();
 
 // Middleware
 app.use(cors({ origin: '*' }));
 app.use(express.json());
-app.use(express.static('../frontend/public'));
+app.use(express.static(path.join(__dirname, '../frontend/public')));
 
 // Rate limiting
 const limiter = rateLimit({
