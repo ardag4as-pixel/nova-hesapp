@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Paneli — VAL STORE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">VAL<span style="color:#ffc800">ADMIN</span></a>
+  <ul class="navbar-nav"></ul>
+  <div class="navbar-user">
+    <span class="badge badge-gold">ADMİN</span>
+    <a href="yetkili.html" class="btn btn-ghost btn-sm">Yetkili Panel</a>
+    <button class="btn btn-ghost btn-sm" onclick="cikisYap()">Çıkış</button>
+  </div>
+</nav>
+
+<div class="panel-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-nav">
+      <div style="padding: 16px 24px 8px; font-size:11px; color:#ffc800; text-transform:uppercase; letter-spacing:2px;">ADMİN PANELİ</div>
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-item aktif" data-bolum="dashboard" onclick="bolumAc('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="sidebar-item" data-bolum="uyeler" onclick="bolumAc('uyeler'); uyeleriYukle()">
+        <span class="icon">👥</span> Üye Yönetimi
+      </div>
+      <div class="sidebar-item" data-bolum="yetkililer" onclick="bolumAc('yetkililer'); yetkilileriYukle()">
+        <span class="icon">⭐</span> Yetkililer
+      </div>
+      <div class="sidebar-item" data-bolum="puan-yonetim" onclick="bolumAc('puan-yonetim')">
+        <span class="icon">💰</span> Puan Yönetimi
+      </div>
+      <div class="sidebar-item" data-bolum="ayarlar" onclick="bolumAc('ayarlar'); ayarlariYukle()">
+        <span class="icon">⚙️</span> Site Ayarları
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-item" onclick="window.location.href='yetkili.html'">
+        <span class="icon">📦</span> Stok Yönetimi
+      </div>
+      <div class="sidebar-item" onclick="window.location.href='index.html'">
+        <span class="icon">🏠</span> Siteye Dön
+      </div>
+    </div>
+  </aside>
+
+  <main class="panel-content">
+
+    <!-- Dashboard -->
+    <div class="panel-section aktif" id="dashboard">
+      <div class="page-header">
+        <h1>ADMİN <span>PANELİ</span></h1>
+        <p>Tüm sistemi buradan yönetiyorsunuz.</p>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:30px;">
+        <div class="stat-card">
+          <div class="stat-number" id="a-stat-uye" style="color:#ffc800">—</div>
+          <div class="stat-label">Toplam Üye</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="a-stat-yetkili" style="color:#ffc800">—</div>
+          <div class="stat-label">Yetkili Sayısı</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="a-stat-stok">—</div>
+          <div class="stat-label">Stokta Hesap</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="a-stat-satilan">—</div>
+          <div class="stat-label">Satılan Hesap</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="a-stat-bugun">—</div>
+          <div class="stat-label">Bugünkü Satış</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="a-stat-kategori">—</div>
+          <div class="stat-label">Aktif Kategori</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,200,0,0.05); border:1px solid rgba(255,200,0,0.2); border-left:3px solid #ffc800; padding:16px 20px;">
+        <p style="color:#ffc800; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">⚠️ Admin Notu</p>
+        <p style="color:var(--val-text); font-size:13px;">Bu panel yalnızca adminlere görünür. Sol menüden tüm yönetim araçlarına ulaşabilirsiniz.</p>
+      </div>
+    </div>
+
+    <!-- Üye Yönetimi -->
+    <div class="panel-section" id="uyeler">
+      <div class="page-header flex-between">
+        <div>
+          <h1>ÜYE <span>YÖNETİMİ</span></h1>
+        </div>
+        <input type="text" class="form-input" id="uye-arama" placeholder="İsim veya email ara..." style="width:250px;" oninput="uyeAra()" />
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <div id="uyeler-yukleniyor" class="loading"><div class="loading-spinner"></div> Yükleniyor...</div>
+          <table class="tablo" id="uyeler-tablo" style="display:none;">
+            <thead>
+              <tr><th>ID</th><th>Kullanıcı</th><th>Email</th><th>Rol</th><th>Puan</th><th>Durum</th><th>İşlemler</th></tr>
+            </thead>
+            <tbody id="uyeler-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yetkililer -->
+    <div class="panel-section" id="yetkililer">
+      <div class="page-header">
+        <h1>YETKİLİ <span>YÖNETİMİ</span></h1>
+        <p>Sistemdeki tüm yetkililer ve durumları</p>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <div id="yetkililer-yukleniyor" class="loading"><div class="loading-spinner"></div> Yükleniyor...</div>
+          <table class="tablo" id="yetkililer-tablo" style="display:none;">
+            <thead>
+              <tr><th>ID</th><th>Kullanıcı</th><th>Email</th><th>Discord</th><th>Durum</th><th>İşlemler</th></tr>
+            </thead>
+            <tbody id="yetkililer-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puan Yönetimi -->
+    <div class="panel-section" id="puan-yonetim">
+      <div class="page-header">
+        <h1>PUAN <span>YÖNETİMİ</span></h1>
+      </div>
+      <div class="card" style="max-width:500px;">
+        <div class="card-header">
+          <span class="card-title">Kullanıcıya Puan Ver / Düş</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Kullanıcı ID</label>
+            <input type="number" class="form-input" id="puan-kullanici-id" placeholder="Kullanıcı ID" min="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Puan Miktarı</label>
+            <input type="number" class="form-input" id="puan-miktar" placeholder="100" min="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">İşlem</label>
+            <select class="form-input" id="puan-islem">
+              <option value="ekle">Puan Ekle</option>
+              <option value="cikar">Puan Düş</option>
+              <option value="set">Puan Ayarla (Set)</option>
+            </select>
+          </div>
+          <button class="btn btn-red btn-full" onclick="puanIslem()">UYGULA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ayarlar -->
+    <div class="panel-section" id="ayarlar">
+      <div class="page-header">
+        <h1>SİTE <span>AYARLARI</span></h1>
+      </div>
+      <div class="card" style="max-width:600px;">
+        <div class="card-body">
+          <div id="ayarlar-yukleniyor" class="loading"><div class="loading-spinner"></div> Yükleniyor...</div>
+          <div id="ayarlar-liste" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Üye İşlem Modal -->
+<div class="modal-overlay" id="uye-islem-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">ÜYE YÖNETİMİ</span>
+      <button class="modal-close" onclick="modalKapat('uye-islem-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--val-text); margin-bottom:20px;">Kullanıcı: <strong style="color:var(--val-white);" id="modal-uye-adi"></strong></p>
+
+      <div class="form-group">
+        <label class="form-label">Rol Değiştir</label>
+        <select class="form-input" id="modal-rol-secim">
+          <option value="uye">Üye</option>
+          <option value="yetkili">Yetkili</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button class="btn btn-red btn-full mb-2" onclick="rolGuncelle()">ROL GÜNCELLE</button>
+
+      <div class="sep"></div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline" style="flex:1;" onclick="durumGuncelle(1)">AKTİF YAP</button>
+        <button class="btn btn-ghost" style="flex:1; color:var(--val-red);" onclick="durumGuncelle(0)">PASİF YAP</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  const adminK = oturumKontrol('admin');
+  let seciliUyeId = null;
+  let tumUyeler = [];
+
+  if (adminK) adminIstatistikYukle();
+
+  async function adminIstatistikYukle() {
+    try {
+      const data = await Admin.istatistik();
+      document.getElementById('a-stat-uye').textContent = data.toplam_uye;
+      document.getElementById('a-stat-yetkili').textContent = data.toplam_yetkili;
+      document.getElementById('a-stat-stok').textContent = data.stokta_hesap;
+      document.getElementById('a-stat-satilan').textContent = data.satilan_hesap;
+      document.getElementById('a-stat-bugun').textContent = data.bugun_satis;
+      document.getElementById('a-stat-kategori').textContent = data.aktif_kategori;
+    } catch {}
+  }
+
+  // Üyeler
+  async function uyeleriYukle() {
+    document.getElementById('uyeler-yukleniyor').style.display = 'flex';
+    document.getElementById('uyeler-tablo').style.display = 'none';
+    try {
+      tumUyeler = await Admin.kullanicilarGetir();
+      uyeTablosuRender(tumUyeler);
+    } catch {
+      toast('Üyeler yüklenemedi.', 'hata');
+    }
+  }
+
+  function uyeTablosuRender(uyeler) {
+    document.getElementById('uyeler-yukleniyor').style.display = 'none';
+    document.getElementById('uyeler-tablo').style.display = 'table';
+
+    document.getElementById('uyeler-tbody').innerHTML = uyeler.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td style="color:var(--val-white); font-weight:700;">${u.kullanici_adi}</td>
+        <td style="font-size:13px;">${u.email}</td>
+        <td><span class="badge ${u.rol === 'admin' ? 'badge-gold' : u.rol === 'yetkili' ? 'badge-blue' : 'badge-gray'}">${u.rol}</span></td>
+        <td style="color:var(--val-red); font-weight:700;">${u.puan}</td>
+        <td><span class="badge ${u.aktif ? 'badge-green' : 'badge-red'}">${u.aktif ? 'Aktif' : 'Pasif'}</span></td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="uyeIslemAc(${u.id}, '${u.kullanici_adi}', '${u.rol}')">YÖNETİM</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function uyeAra() {
+    const q = document.getElementById('uye-arama').value.toLowerCase();
+    const filtre = tumUyeler.filter(u =>
+      u.kullanici_adi.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
+    uyeTablosuRender(filtre);
+  }
+
+  function uyeIslemAc(id, ad, rol) {
+    seciliUyeId = id;
+    document.getElementById('modal-uye-adi').textContent = ad;
+    document.getElementById('modal-rol-secim').value = rol;
+    modalAc('uye-islem-modal');
+  }
+
+  async function rolGuncelle() {
+    const yeniRol = document.getElementById('modal-rol-secim').value;
+    try {
+      await Admin.rolGuncelle(seciliUyeId, yeniRol);
+      toast('Rol güncellendi!', 'basari');
+      modalKapat('uye-islem-modal');
+      uyeleriYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  }
+
+  async function durumGuncelle(aktif) {
+    try {
+      await Admin.durumGuncelle(seciliUyeId, aktif);
+      toast(`Kullanıcı ${aktif ? 'aktif' : 'pasif'} yapıldı.`, 'basari');
+      modalKapat('uye-islem-modal');
+      uyeleriYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  }
+
+  // Yetkililer
+  async function yetkilileriYukle() {
+    document.getElementById('yetkililer-yukleniyor').style.display = 'flex';
+    document.getElementById('yetkililer-tablo').style.display = 'none';
+    try {
+      const yetkililer = await Admin.yetkilileriGetir();
+      document.getElementById('yetkililer-yukleniyor').style.display = 'none';
+      document.getElementById('yetkililer-tablo').style.display = 'table';
+
+      document.getElementById('yetkililer-tbody').innerHTML = yetkililer.map(y => `
+        <tr>
+          <td>${y.id}</td>
+          <td style="color:var(--val-white); font-weight:700;">${y.kullanici_adi}</td>
+          <td>${y.email}</td>
+          <td style="color:var(--val-blue);">${y.discord_username || '—'}</td>
+          <td><span class="badge ${y.aktif ? 'badge-green' : 'badge-red'}">${y.aktif ? 'Aktif' : 'Pasif'}</span></td>
+          <td>
+            <button class="btn btn-ghost btn-sm" style="color:var(--val-red);" onclick="yetkiliUyeYap(${y.id})">ÜYE YAP</button>
+          </td>
+        </tr>
+      `).join('');
+    } catch {
+      toast('Yetkililer yüklenemedi.', 'hata');
+    }
+  }
+
+  async function yetkiliUyeYap(id) {
+    if (!confirm('Bu yetkiliyi normal üye yapmak istediğinize emin misiniz?')) return;
+    try {
+      await Admin.rolGuncelle(id, 'uye');
+      toast('Yetkili üye yapıldı.', 'basari');
+      yetkilileriYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  }
+
+  // Puan
+  async function puanIslem() {
+    const id = document.getElementById('puan-kullanici-id').value;
+    const miktar = parseInt(document.getElementById('puan-miktar').value);
+    const islem = document.getElementById('puan-islem').value;
+
+    if (!id || !miktar) {
+      toast('Tüm alanları doldurun.', 'hata');
+      return;
+    }
+
+    try {
+      await Admin.puanVer(id, miktar, islem);
+      toast('Puan işlemi tamamlandı!', 'basari');
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  }
+
+  // Ayarlar
+  async function ayarlariYukle() {
+    try {
+      const ayarlar = await Admin.ayarlariGetir();
+      document.getElementById('ayarlar-yukleniyor').style.display = 'none';
+      const container = document.getElementById('ayarlar-liste');
+      container.style.display = 'block';
+
+      container.innerHTML = ayarlar.map(a => `
+        <div class="form-group" style="border-bottom:1px solid var(--val-border); padding-bottom:16px; margin-bottom:16px;">
+          <label class="form-label">${a.aciklama || a.anahtar}</label>
+          <p style="font-size:11px; color:var(--val-text); margin-bottom:8px;">Anahtar: <code style="color:var(--val-blue);">${a.anahtar}</code></p>
+          <div style="display:flex; gap:10px;">
+            <input type="text" class="form-input" id="ayar-${a.anahtar}" value="${a.deger}" style="flex:1;" />
+            <button class="btn btn-red btn-sm" onclick="ayarKaydet('${a.anahtar}')">KAYDET</button>
+          </div>
+        </div>
+      `).join('');
+    } catch {
+      toast('Ayarlar yüklenemedi.', 'hata');
+    }
+  }
+
+  async function ayarKaydet(anahtar) {
+    const deger = document.getElementById(`ayar-${anahtar}`).value;
+    try {
+      await Admin.ayarGuncelle(anahtar, deger);
+      toast('Ayar kaydedildi!', 'basari');
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  }
+</script>
+</body>
+</html>

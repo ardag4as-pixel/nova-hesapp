@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kayıt Ol — VAL STORE</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px 40px;
+    }
+    .auth-box { width: 100%; max-width: 420px; }
+    .auth-logo { text-align: center; margin-bottom: 32px; }
+    .auth-logo h1 { font-family: 'Oswald', sans-serif; font-size: 40px; color: var(--val-white); text-transform: uppercase; letter-spacing: 4px; }
+    .auth-logo h1 span { color: var(--val-red); }
+    .auth-logo p { color: var(--val-text); font-size: 13px; margin-top: 8px; letter-spacing: 2px; }
+    .info-box {
+      background: rgba(0,200,255,0.05);
+      border: 1px solid rgba(0,200,255,0.2);
+      border-left: 3px solid var(--val-blue);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--val-text);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .info-box span { color: var(--val-blue); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">VAL<span>STORE</span></a>
+  <ul class="navbar-nav"></ul>
+  <div class="navbar-user">
+    <a href="giris.html" class="btn btn-outline btn-sm">Giriş Yap</a>
+  </div>
+</nav>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>VAL<span>STORE</span></h1>
+      <p>KAYIT OL</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="info-box">
+          <span>🎯 Davet Kodu?</span> Bir arkadaşın seni davet ettiyse, onun davet kodunu girerek bonus puan kazanabilirsin!
+        </div>
+
+        <form id="kayit-form">
+          <div class="form-group">
+            <label class="form-label">Kullanıcı Adı</label>
+            <input type="text" id="kullanici_adi" class="form-input" placeholder="valorant_oyuncusu" required minlength="3" maxlength="50" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-Posta</label>
+            <input type="email" id="email" class="form-input" placeholder="ornek@mail.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Şifre</label>
+            <input type="password" id="sifre" class="form-input" placeholder="En az 6 karakter" required minlength="6" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Davet Kodu <span style="color:var(--val-text);font-weight:400;">(İsteğe bağlı)</span></label>
+            <input type="text" id="davet_kodu" class="form-input" placeholder="Davet kodu (varsa)" style="text-transform:uppercase;" />
+          </div>
+          <button type="submit" class="btn btn-red btn-full mt-3" id="kayit-btn">
+            KAYIT OL
+          </button>
+        </form>
+
+        <p style="text-align:center; font-size:14px; color:var(--val-text); margin-top:20px;">
+          Zaten hesabın var mı?
+          <a href="giris.html" style="color:var(--val-red); text-decoration:none; font-weight:700;">Giriş Yap</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // URL'den davet kodu al
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('davet')) {
+    document.getElementById('davet_kodu').value = params.get('davet').toUpperCase();
+  }
+
+  document.getElementById('kayit-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('kayit-btn');
+    btn.disabled = true;
+    btn.textContent = 'KAYIT YAPILIYOR...';
+
+    try {
+      await Auth.kayit({
+        kullanici_adi: document.getElementById('kullanici_adi').value,
+        email: document.getElementById('email').value,
+        sifre: document.getElementById('sifre').value,
+        davet_kodu: document.getElementById('davet_kodu').value || null
+      });
+
+      toast('Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...', 'basari');
+      setTimeout(() => window.location.href = '/giris.html', 1500);
+    } catch (err) {
+      toast(err.message, 'hata');
+      btn.disabled = false;
+      btn.textContent = 'KAYIT OL';
+    }
+  });
+</script>
+</body>
+</html>

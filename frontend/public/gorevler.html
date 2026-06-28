@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Görevler — VAL STORE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">VAL<span>STORE</span></a>
+  <ul class="navbar-nav">
+    <li><a href="index.html">Ana Sayfa</a></li>
+    <li><a href="magaza.html">Mağaza</a></li>
+    <li><a href="gorevler.html" style="color:var(--val-red)">Görevler</a></li>
+  </ul>
+  <div class="navbar-user">
+    <span class="puan-badge" id="nav-puan" style="display:none"></span>
+    <a href="profil.html" class="btn btn-ghost btn-sm" id="nav-profil" style="display:none"></a>
+    <a href="yetkili.html" class="btn btn-ghost btn-sm" id="nav-yetkili" style="display:none">Yetkili Panel</a>
+    <a href="admin.html" class="btn btn-ghost btn-sm" id="nav-admin" style="display:none">Admin Panel</a>
+    <button class="btn btn-ghost btn-sm" id="nav-cikis" style="display:none" onclick="cikisYap()">Çıkış</button>
+    <a href="giris.html" class="btn btn-outline btn-sm" id="nav-giris">Giriş Yap</a>
+    <a href="kayit.html" class="btn btn-red btn-sm" id="nav-kayit">Kayıt Ol</a>
+  </div>
+</nav>
+
+<div style="padding: 80px 30px 40px; min-height: 100vh; position: relative; z-index: 1;">
+  <div style="max-width: 900px; margin: 0 auto;">
+
+    <div class="page-header">
+      <h1>GÖREVLER & <span>DAVETLER</span></h1>
+      <p>Görevleri tamamla, Discord sunucumuza arkadaşlarını davet et ve puan kazan!</p>
+    </div>
+
+    <!-- Giriş yapılmamışsa uyarı -->
+    <div id="giris-uyari" style="display:none;">
+      <div style="background: rgba(255,70,85,0.05); border: 1px solid rgba(255,70,85,0.2); padding: 30px; text-align: center; margin-bottom: 30px;">
+        <div style="font-size:40px; margin-bottom:16px;">🔒</div>
+        <p style="color: var(--val-text); margin-bottom:16px;">Görevleri görmek için giriş yapmanız gerekiyor.</p>
+        <a href="giris.html" class="btn btn-red">GİRİŞ YAP</a>
+      </div>
+    </div>
+
+    <!-- Davet Bilgisi -->
+    <div id="davet-panel" style="display:none;">
+      <div class="card mb-3">
+        <div class="card-header">
+          <span style="font-size:20px;">🎯</span>
+          <span class="card-title">DAVET SİSTEMİ</span>
+        </div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div>
+              <p style="font-size:13px; color:var(--val-text); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Davet Kodun</p>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <div style="background:rgba(255,70,85,0.1); border:1px solid var(--val-red); padding:12px 20px; font-family:'Oswald',sans-serif; font-size:24px; color:var(--val-white); letter-spacing:4px;" id="davet-kodu-goster">—</div>
+                <button class="btn btn-outline btn-sm" onclick="davetKodunuKopyala()">KOPYALA</button>
+              </div>
+              <p style="font-size:12px; color:var(--val-text); margin-top:8px;">
+                Link: <span id="davet-link" style="color:var(--val-blue); font-size:11px;"></span>
+              </p>
+            </div>
+            <div>
+              <p style="font-size:13px; color:var(--val-text); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Davet Durumun</p>
+              <div style="font-family:'Oswald',sans-serif; font-size:36px; color:var(--val-red);" id="davet-sayisi-goster">0</div>
+              <p style="font-size:13px; color:var(--val-text);">onaylanmış davet</p>
+            </div>
+          </div>
+
+          <!-- Discord Bağlama -->
+          <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--val-border);">
+            <div id="discord-bagli">
+              <p style="font-size:13px; color:var(--val-text);">Discord: <span id="discord-kullanici" style="color:var(--val-blue);"></span></p>
+            </div>
+            <div id="discord-bagla-form" style="display:none;">
+              <p style="font-size:13px; color:var(--val-text); margin-bottom:12px;">
+                ⚠️ Davet sisteminin çalışması için Discord hesabınızı bağlamanız gerekiyor.
+              </p>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <input type="text" id="discord-id-input" class="form-input" placeholder="Discord ID (sayısal)" style="flex:1; min-width:150px;" />
+                <input type="text" id="discord-username-input" class="form-input" placeholder="Discord Kullanıcı Adı" style="flex:1; min-width:150px;" />
+                <button class="btn btn-blue btn-sm" onclick="discordBagla()">BAĞLA</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Görevler -->
+      <div id="gorevler-yukleniyor" class="loading">
+        <div class="loading-spinner"></div> Görevler yükleniyor...
+      </div>
+      <div id="gorevler-grid" style="display:none;"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  navbarGuncelle();
+
+  const k = kullanici.al();
+
+  if (!k || !token.al()) {
+    document.getElementById('giris-uyari').style.display = 'block';
+  } else {
+    document.getElementById('davet-panel').style.display = 'block';
+    gorevleriYukle();
+    davetBilgiYukle();
+  }
+
+  async function davetBilgiYukle() {
+    try {
+      const bilgi = await Gorev.davetBilgi();
+      document.getElementById('davet-kodu-goster').textContent = bilgi.davet_kodu;
+      document.getElementById('davet-link').textContent = `${window.location.origin}/kayit.html?davet=${bilgi.davet_kodu}`;
+      document.getElementById('davet-sayisi-goster').textContent = bilgi.onaylanan_davet;
+
+      // Discord durumu
+      const profil = await Auth.profil();
+      if (profil.discord_username) {
+        document.getElementById('discord-kullanici').textContent = profil.discord_username;
+        document.getElementById('discord-bagli').style.display = 'block';
+        document.getElementById('discord-bagla-form').style.display = 'none';
+      } else {
+        document.getElementById('discord-bagli').style.display = 'none';
+        document.getElementById('discord-bagla-form').style.display = 'block';
+      }
+    } catch (err) {
+      toast('Bilgiler yüklenirken hata oluştu.', 'hata');
+    }
+  }
+
+  async function gorevleriYukle() {
+    try {
+      const gorevler = await Gorev.listele();
+      document.getElementById('gorevler-yukleniyor').style.display = 'none';
+      const grid = document.getElementById('gorevler-grid');
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+      grid.style.gap = '20px';
+
+      if (gorevler.length === 0) {
+        grid.innerHTML = '<p style="color:var(--val-text); text-align:center;">Henüz görev eklenmemiş.</p>';
+        return;
+      }
+
+      grid.innerHTML = gorevler.map(g => {
+        const yuzde = g.tur === 'davet' ? Math.min(100, Math.round((g.mevcut_davet / g.gerekli_davet_sayisi) * 100)) : 0;
+        return `
+          <div class="gorev-kart ${g.tamamlandi ? 'tamamlandi' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <div>
+                <div style="font-family:'Oswald',sans-serif; font-size:18px; color:var(--val-white); margin-bottom:4px;">${g.ad}</div>
+                <span class="badge ${g.tur === 'davet' ? 'badge-blue' : 'badge-gray'}">${g.tur === 'davet' ? '🎯 DAVET' : '📋 MANUEL'}</span>
+              </div>
+              <div class="gorev-puan">+${g.puan_odulu}</div>
+            </div>
+            <p style="font-size:13px; color:var(--val-text); line-height:1.5; margin-bottom:12px;">${g.aciklama || ''}</p>
+            ${g.tur === 'davet' ? `
+              <div style="font-size:12px; color:var(--val-text); margin-bottom:8px;">
+                İlerleme: ${g.mevcut_davet}/${g.gerekli_davet_sayisi} davet
+              </div>
+              <div class="gorev-progress">
+                <div class="gorev-progress-bar" style="width:${yuzde}%"></div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      document.getElementById('gorevler-yukleniyor').innerHTML = '<p style="color:var(--val-red);">Görevler yüklenemedi.</p>';
+    }
+  }
+
+  function davetKodunuKopyala() {
+    const link = `${window.location.origin}/kayit.html?davet=${document.getElementById('davet-kodu-goster').textContent}`;
+    navigator.clipboard.writeText(link).then(() => {
+      toast('Davet linki kopyalandı!', 'basari');
+    });
+  }
+
+  async function discordBagla() {
+    const discord_id = document.getElementById('discord-id-input').value.trim();
+    const discord_username = document.getElementById('discord-username-input').value.trim();
+
+    if (!discord_id || !discord_username) {
+      toast('Lütfen tüm Discord bilgilerini doldurun.', 'hata');
+      return;
+    }
+
+    try {
+      await Gorev.discordBagla({ discord_id, discord_username });
+      toast('Discord hesabı bağlandı!', 'basari');
+      davetBilgiYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mağaza — VAL STORE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">VAL<span>STORE</span></a>
+  <ul class="navbar-nav">
+    <li><a href="index.html">Ana Sayfa</a></li>
+    <li><a href="magaza.html" style="color:var(--val-red)">Mağaza</a></li>
+    <li><a href="gorevler.html">Görevler</a></li>
+  </ul>
+  <div class="navbar-user">
+    <span class="puan-badge" id="nav-puan" style="display:none"></span>
+    <a href="profil.html" class="btn btn-ghost btn-sm" id="nav-profil" style="display:none"></a>
+    <a href="yetkili.html" class="btn btn-ghost btn-sm" id="nav-yetkili" style="display:none">Yetkili Panel</a>
+    <a href="admin.html" class="btn btn-ghost btn-sm" id="nav-admin" style="display:none">Admin Panel</a>
+    <button class="btn btn-ghost btn-sm" id="nav-cikis" style="display:none" onclick="cikisYap()">Çıkış</button>
+    <a href="giris.html" class="btn btn-outline btn-sm" id="nav-giris">Giriş Yap</a>
+    <a href="kayit.html" class="btn btn-red btn-sm" id="nav-kayit">Kayıt Ol</a>
+  </div>
+</nav>
+
+<div style="padding: 80px 30px 40px; min-height: 100vh; position: relative; z-index: 1;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+
+    <div class="page-header">
+      <h1>HESAP <span>MAĞAZASI</span></h1>
+      <p>Valorant hesaplarını puanlarınla satın al. Kategoriye tıkla, hesabı seç ve hemen al.</p>
+    </div>
+
+    <!-- Kategoriler -->
+    <div id="kategoriler-yukleniyor" class="loading">
+      <div class="loading-spinner"></div> Kategoriler yükleniyor...
+    </div>
+
+    <div class="kategoriler-grid" id="kategoriler-grid" style="display:none;"></div>
+
+  </div>
+</div>
+
+<!-- Kategori Hesapları Modal -->
+<div class="modal-overlay" id="hesaplar-modal">
+  <div class="modal" style="max-width: 600px;">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-kategori-adi">KATEGORİ</span>
+      <button class="modal-close" onclick="modalKapat('hesaplar-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="hesaplar-liste"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Satın Alma Onay Modal -->
+<div class="modal-overlay" id="satin-al-modal">
+  <div class="modal" style="max-width: 420px;">
+    <div class="modal-header">
+      <span class="modal-title">HESAP SATIN AL</span>
+      <button class="modal-close" onclick="modalKapat('satin-al-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--val-text); margin-bottom:20px; line-height:1.6;">
+        Bu hesabı satın almak istediğinize emin misiniz?<br>
+        <strong style="color:var(--val-red);" id="satin-al-fiyat"></strong> puan düşülecektir.
+      </p>
+      <div class="flex-between">
+        <button class="btn btn-ghost" onclick="modalKapat('satin-al-modal')">İPTAL</button>
+        <button class="btn btn-red" id="satin-al-onayla">SATIN AL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hesap Bilgisi Modal -->
+<div class="modal-overlay" id="hesap-bilgi-modal">
+  <div class="modal" style="max-width: 480px;">
+    <div class="modal-header">
+      <span class="modal-title">🎉 HESAP BİLGİLERİ</span>
+      <button class="modal-close" onclick="modalKapat('hesap-bilgi-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(0,255,135,0.05); border:1px solid rgba(0,255,135,0.2); padding:20px; margin-bottom:20px;">
+        <p style="font-size:13px; color:var(--val-text); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">Kullanıcı Adı:</p>
+        <p id="hesap-kullanici" style="font-family:'Oswald',sans-serif; font-size:22px; color:var(--val-white); word-break:break-all;"></p>
+        <div style="height:1px; background:var(--val-border); margin:12px 0;"></div>
+        <p style="font-size:13px; color:var(--val-text); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">Şifre:</p>
+        <p id="hesap-sifre" style="font-family:'Oswald',sans-serif; font-size:22px; color:var(--val-red); word-break:break-all;"></p>
+      </div>
+      <p style="color:var(--val-text); font-size:13px; line-height:1.6;">
+        ⚠️ Bu bilgileri güvenli bir yere kaydedin. Satın alımlarınızı <a href="profil.html" style="color:var(--val-red);">profil sayfanızdan</a> tekrar görebilirsiniz.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  navbarGuncelle();
+  let seciliHesapId = null;
+
+  // Kategorileri yükle
+  async function kategorileriYukle() {
+    try {
+      const kategoriler = await Hesap.kategoriler();
+      document.getElementById('kategoriler-yukleniyor').style.display = 'none';
+      const grid = document.getElementById('kategoriler-grid');
+      grid.style.display = 'grid';
+
+      if (kategoriler.length === 0) {
+        grid.innerHTML = '<p style="color:var(--val-text); text-align:center; padding:40px;">Henüz kategori eklenmemiş.</p>';
+        return;
+      }
+
+      grid.innerHTML = kategoriler.map(k => `
+        <div class="kategori-kart" onclick="hesaplariGoster(${k.id}, '${k.ad}')">
+          <div class="kategori-img-placeholder">${k.resim_url ? '' : '🎮'}
+            ${k.resim_url ? `<img src="${k.resim_url}" alt="${k.ad}" onerror="this.parentElement.innerHTML='🎮'" />` : ''}
+          </div>
+          <div class="kategori-info">
+            <div class="kategori-ad">${k.ad}</div>
+            <div class="kategori-stok">
+              <span class="stok-dot"></span>
+              ${k.stok_sayisi} hesap stokta
+            </div>
+            ${k.aciklama ? `<p style="font-size:13px; color:var(--val-text); margin-top:8px;">${k.aciklama}</p>` : ''}
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      document.getElementById('kategoriler-yukleniyor').innerHTML = '<p style="color:var(--val-red);">Kategoriler yüklenemedi.</p>';
+    }
+  }
+
+  // Kategoriye ait hesapları göster
+  async function hesaplariGoster(kategoriId, kategoriAdi) {
+    document.getElementById('modal-kategori-adi').textContent = kategoriAdi;
+    document.getElementById('hesaplar-liste').innerHTML = '<div class="loading"><div class="loading-spinner"></div> Yükleniyor...</div>';
+    modalAc('hesaplar-modal');
+
+    try {
+      const hesaplar = await Hesap.kategoriHesaplari(kategoriId);
+
+      if (hesaplar.length === 0) {
+        document.getElementById('hesaplar-liste').innerHTML = `
+          <div style="text-align:center; padding:40px; color:var(--val-text);">
+            <div style="font-size:48px; margin-bottom:16px;">📦</div>
+            <p>Bu kategoride şu an stok bulunmuyor.</p>
+          </div>`;
+        return;
+      }
+
+      document.getElementById('hesaplar-liste').innerHTML = `
+        <div style="margin-bottom:16px; color:var(--val-text); font-size:13px;">
+          ${hesaplar.length} hesap mevcut
+        </div>
+        ${hesaplar.map(h => `
+          <div class="hesap-kart" style="margin-bottom:10px;">
+            <div>
+              <div style="font-size:13px; color:var(--val-text);">Hesap #${h.id}</div>
+              <div class="hesap-fiyat">${h.puan_fiyati} Puan</div>
+            </div>
+            <button class="btn btn-red btn-sm" onclick="satinAlBaslat(${h.id}, ${h.puan_fiyati})">
+              SATIN AL
+            </button>
+          </div>
+        `).join('')}
+      `;
+    } catch (err) {
+      document.getElementById('hesaplar-liste').innerHTML = '<p style="color:var(--val-red);">Hesaplar yüklenemedi.</p>';
+    }
+  }
+
+  // Satın alma başlat
+  function satinAlBaslat(hesapId, fiyat) {
+    const k = kullanici.al();
+    if (!k) {
+      toast('Satın almak için giriş yapmanız gerekiyor.', 'hata');
+      setTimeout(() => window.location.href = '/giris.html', 1500);
+      return;
+    }
+
+    seciliHesapId = hesapId;
+    document.getElementById('satin-al-fiyat').textContent = fiyat;
+    modalKapat('hesaplar-modal');
+    modalAc('satin-al-modal');
+  }
+
+  // Satın alma onayla
+  document.getElementById('satin-al-onayla').addEventListener('click', async () => {
+    if (!seciliHesapId) return;
+    const btn = document.getElementById('satin-al-onayla');
+    btn.disabled = true;
+    btn.textContent = 'İŞLENİYOR...';
+
+    try {
+      const sonuc = await Hesap.satinAl(seciliHesapId);
+
+      // Profil güncelle
+      const profil = await Auth.profil();
+      const k = kullanici.al();
+      k.puan = profil.puan;
+      kullanici.kaydet(k);
+      navbarGuncelle();
+
+      modalKapat('satin-al-modal');
+
+      // Hesap bilgilerini göster
+      document.getElementById('hesap-kullanici').textContent = sonuc.hesap.kullanici_adi;
+      document.getElementById('hesap-sifre').textContent = sonuc.hesap.sifre;
+      modalAc('hesap-bilgi-modal');
+
+      toast('Hesap başarıyla satın alındı!', 'basari');
+    } catch (err) {
+      toast(err.message, 'hata');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'SATIN AL';
+    }
+  });
+
+  kategorileriYukle();
+</script>
+</body>
+</html>

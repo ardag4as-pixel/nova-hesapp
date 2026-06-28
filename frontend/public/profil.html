@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil — VAL STORE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">VAL<span>STORE</span></a>
+  <ul class="navbar-nav">
+    <li><a href="index.html">Ana Sayfa</a></li>
+    <li><a href="magaza.html">Mağaza</a></li>
+    <li><a href="gorevler.html">Görevler</a></li>
+  </ul>
+  <div class="navbar-user">
+    <span class="puan-badge" id="nav-puan" style="display:none"></span>
+    <a href="profil.html" class="btn btn-ghost btn-sm" id="nav-profil" style="display:none"></a>
+    <a href="yetkili.html" class="btn btn-ghost btn-sm" id="nav-yetkili" style="display:none">Yetkili Panel</a>
+    <a href="admin.html" class="btn btn-ghost btn-sm" id="nav-admin" style="display:none">Admin Panel</a>
+    <button class="btn btn-ghost btn-sm" id="nav-cikis" style="display:none" onclick="cikisYap()">Çıkış</button>
+    <a href="giris.html" class="btn btn-outline btn-sm" id="nav-giris">Giriş Yap</a>
+    <a href="kayit.html" class="btn btn-red btn-sm" id="nav-kayit">Kayıt Ol</a>
+  </div>
+</nav>
+
+<div style="padding: 80px 30px 40px; min-height: 100vh; position: relative; z-index: 1;">
+  <div style="max-width: 900px; margin: 0 auto;">
+
+    <!-- Profil başlık -->
+    <div style="display:flex; align-items:center; gap:24px; margin-bottom:30px;">
+      <div style="width:80px; height:80px; background:rgba(255,70,85,0.1); border:2px solid var(--val-red); display:flex; align-items:center; justify-content:center; font-size:32px;">
+        🎮
+      </div>
+      <div>
+        <h1 id="profil-kullanici" style="font-family:'Oswald',sans-serif; font-size:32px; color:var(--val-white); text-transform:uppercase;"></h1>
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <span class="badge badge-red" id="profil-rol"></span>
+          <span style="color:var(--val-red); font-family:'Oswald',sans-serif; font-size:20px;" id="profil-puan"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab -->
+    <div class="tab-list">
+      <button class="tab-btn aktif" data-tab="satinalimlar">Satın Alımlarım</button>
+      <button class="tab-btn" data-tab="bilgiler">Hesap Bilgileri</button>
+    </div>
+
+    <!-- Satın Alımlar -->
+    <div class="tab-panel aktif" data-tab="satinalimlar">
+      <div id="satinalimlar-yukleniyor" class="loading">
+        <div class="loading-spinner"></div> Yükleniyor...
+      </div>
+      <div id="satinalimlar-liste" style="display:none;"></div>
+    </div>
+
+    <!-- Hesap bilgileri -->
+    <div class="tab-panel" data-tab="bilgiler">
+      <div class="card">
+        <div class="card-body">
+          <div class="grid-2">
+            <div>
+              <p class="form-label">Kullanıcı Adı</p>
+              <p id="bilgi-kullanici" style="color:var(--val-white); font-size:16px;"></p>
+            </div>
+            <div>
+              <p class="form-label">E-Posta</p>
+              <p id="bilgi-email" style="color:var(--val-white); font-size:16px;"></p>
+            </div>
+            <div>
+              <p class="form-label">Davet Kodun</p>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <p id="bilgi-davet-kodu" style="color:var(--val-red); font-family:'Oswald',sans-serif; font-size:20px; letter-spacing:3px;"></p>
+                <button class="btn btn-ghost btn-sm" onclick="davetKodunuKopyala()">Kopyala</button>
+              </div>
+            </div>
+            <div>
+              <p class="form-label">Discord</p>
+              <p id="bilgi-discord" style="color:var(--val-blue); font-size:16px;"></p>
+            </div>
+            <div>
+              <p class="form-label">Kayıt Tarihi</p>
+              <p id="bilgi-tarih" style="color:var(--val-white); font-size:16px;"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  const k = oturumKontrol();
+  navbarGuncelle();
+
+  // Tab
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('aktif'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('aktif'));
+      btn.classList.add('aktif');
+      document.querySelector(`.tab-panel[data-tab="${btn.dataset.tab}"]`).classList.add('aktif');
+    });
+  });
+
+  async function profilYukle() {
+    try {
+      const profil = await Auth.profil();
+      document.getElementById('profil-kullanici').textContent = profil.kullanici_adi;
+      document.getElementById('profil-rol').textContent = profil.rol.toUpperCase();
+      document.getElementById('profil-puan').textContent = `${profil.puan} PUAN`;
+
+      document.getElementById('bilgi-kullanici').textContent = profil.kullanici_adi;
+      document.getElementById('bilgi-email').textContent = profil.email;
+      document.getElementById('bilgi-davet-kodu').textContent = profil.davet_kodu;
+      document.getElementById('bilgi-discord').textContent = profil.discord_username || 'Bağlanmamış';
+      document.getElementById('bilgi-tarih').textContent = tarihFormatla(profil.olusturma_tarihi);
+
+      // Puan güncelle
+      const kLocal = kullanici.al();
+      kLocal.puan = profil.puan;
+      kullanici.kaydet(kLocal);
+      navbarGuncelle();
+    } catch {}
+  }
+
+  async function satinAlimlarYukle() {
+    try {
+      const liste = await Hesap.satinAlimlarim();
+      document.getElementById('satinalimlar-yukleniyor').style.display = 'none';
+      const container = document.getElementById('satinalimlar-liste');
+      container.style.display = 'block';
+
+      if (liste.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:60px 20px; color:var(--val-text);">
+            <div style="font-size:48px; margin-bottom:16px;">🛒</div>
+            <p>Henüz bir hesap satın almadınız.</p>
+            <a href="magaza.html" class="btn btn-red mt-3" style="display:inline-flex;">MAĞAZAYA GİT</a>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="tablo">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Kategori</th>
+                <th>Hesap</th>
+                <th>Şifre</th>
+                <th>Ödenen Puan</th>
+                <th>Tarih</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${liste.map((s, i) => `
+                <tr>
+                  <td>${i + 1}</td>
+                  <td><span class="badge badge-blue">${s.kategori}</span></td>
+                  <td style="font-family:monospace; color:var(--val-white);">${s.hesap_kullanici_adi}</td>
+                  <td style="font-family:monospace; color:var(--val-red);">${s.hesap_sifre}</td>
+                  <td style="color:var(--val-red); font-weight:700;">${s.odenen_puan}</td>
+                  <td style="font-size:12px;">${tarihFormatla(s.tarih)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    } catch (err) {
+      document.getElementById('satinalimlar-yukleniyor').innerHTML = '<p style="color:var(--val-red);">Satın alımlar yüklenemedi.</p>';
+    }
+  }
+
+  function davetKodunuKopyala() {
+    const kod = document.getElementById('bilgi-davet-kodu').textContent;
+    const link = `${window.location.origin}/kayit.html?davet=${kod}`;
+    navigator.clipboard.writeText(link).then(() => toast('Davet linki kopyalandı!', 'basari'));
+  }
+
+  profilYukle();
+  satinAlimlarYukle();
+</script>
+</body>
+</html>

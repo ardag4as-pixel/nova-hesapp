@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yetkili Paneli — VAL STORE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">VAL<span>STORE</span></a>
+  <ul class="navbar-nav">
+    <li><a href="index.html">Ana Sayfa</a></li>
+  </ul>
+  <div class="navbar-user">
+    <span class="puan-badge" id="nav-puan" style="display:none"></span>
+    <a href="profil.html" class="btn btn-ghost btn-sm" id="nav-profil" style="display:none"></a>
+    <a href="admin.html" class="btn btn-ghost btn-sm" id="nav-admin" style="display:none">Admin Panel</a>
+    <button class="btn btn-ghost btn-sm" id="nav-cikis" onclick="cikisYap()">Çıkış</button>
+    <a href="giris.html" class="btn btn-outline btn-sm" id="nav-giris">Giriş Yap</a>
+    <a href="kayit.html" class="btn btn-red btn-sm" id="nav-kayit">Kayıt Ol</a>
+  </div>
+</nav>
+
+<div class="panel-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-nav">
+      <div style="padding: 16px 24px 8px; font-size:11px; color:var(--val-text); text-transform:uppercase; letter-spacing:2px;">YETKİLİ PANELİ</div>
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-item aktif" data-bolum="dashboard" onclick="bolumAc('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="sidebar-item" data-bolum="stok-ekle" onclick="bolumAc('stok-ekle')">
+        <span class="icon">➕</span> Stok Ekle
+      </div>
+      <div class="sidebar-item" data-bolum="stoklar" onclick="bolumAc('stoklar'); stoklariYukle()">
+        <span class="icon">📦</span> Stok Listesi
+      </div>
+      <div class="sidebar-item" data-bolum="kategoriler" onclick="bolumAc('kategoriler'); kategorileriYukle()">
+        <span class="icon">🏷️</span> Kategoriler
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-item" onclick="window.location.href='index.html'">
+        <span class="icon">🏠</span> Siteye Dön
+      </div>
+    </div>
+  </aside>
+
+  <!-- İçerik -->
+  <main class="panel-content">
+
+    <!-- Dashboard -->
+    <div class="panel-section aktif" id="dashboard">
+      <div class="page-header">
+        <h1>YETKİLİ <span>PANELİ</span></h1>
+        <p>Stok ve kategori yönetimi</p>
+      </div>
+      <div class="grid-4" id="yetkili-stats">
+        <div class="stat-card">
+          <div class="stat-number" id="stat-stokta">—</div>
+          <div class="stat-label">Stokta Hesap</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-satilan">—</div>
+          <div class="stat-label">Satılan Hesap</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-kategori">—</div>
+          <div class="stat-label">Aktif Kategori</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-uye">—</div>
+          <div class="stat-label">Toplam Üye</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stok Ekle -->
+    <div class="panel-section" id="stok-ekle">
+      <div class="page-header">
+        <h1>STOK <span>EKLE</span></h1>
+      </div>
+
+      <div class="grid-2">
+        <!-- Tekli Ekleme -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Tek Hesap Ekle</span>
+          </div>
+          <div class="card-body">
+            <form id="tekli-form">
+              <div class="form-group">
+                <label class="form-label">Kategori</label>
+                <select class="form-input" id="tekli-kategori" required>
+                  <option value="">Seçin...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hesap Kullanıcı Adı</label>
+                <input type="text" class="form-input" id="tekli-kullanici" placeholder="valorant_hesap" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hesap Şifresi</label>
+                <input type="text" class="form-input" id="tekli-sifre" placeholder="şifre123" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Puan Fiyatı</label>
+                <input type="number" class="form-input" id="tekli-puan" placeholder="500" min="1" required />
+              </div>
+              <button type="submit" class="btn btn-red btn-full">EKLE</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Toplu Ekleme -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Toplu Hesap Ekle</span>
+          </div>
+          <div class="card-body">
+            <form id="toplu-form">
+              <div class="form-group">
+                <label class="form-label">Kategori</label>
+                <select class="form-input" id="toplu-kategori" required>
+                  <option value="">Seçin...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Puan Fiyatı (tümü için)</label>
+                <input type="number" class="form-input" id="toplu-puan" placeholder="500" min="1" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hesaplar (her satır: kullanici:sifre)</label>
+                <textarea class="form-input" id="toplu-hesaplar" placeholder="hesap1:sifre1&#10;hesap2:sifre2&#10;hesap3:sifre3" style="min-height:150px;" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-red btn-full">TOPLU EKLE</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stok Listesi -->
+    <div class="panel-section" id="stoklar">
+      <div class="page-header flex-between">
+        <div>
+          <h1>STOK <span>LİSTESİ</span></h1>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <select class="form-input" id="stok-filtre-durum" style="width:auto;" onchange="stoklariYukle()">
+            <option value="">Tüm Durumlar</option>
+            <option value="stokta">Stokta</option>
+            <option value="satildi">Satıldı</option>
+          </select>
+          <select class="form-input" id="stok-filtre-kategori" style="width:auto;" onchange="stoklariYukle()">
+            <option value="">Tüm Kategoriler</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <div id="stoklar-yukleniyor" class="loading"><div class="loading-spinner"></div> Yükleniyor...</div>
+          <table class="tablo" id="stoklar-tablo" style="display:none;">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Kategori</th>
+                <th>Kullanıcı Adı</th>
+                <th>Puan Fiyatı</th>
+                <th>Durum</th>
+                <th>Eklenme</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="stoklar-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kategoriler -->
+    <div class="panel-section" id="kategoriler">
+      <div class="page-header flex-between">
+        <div>
+          <h1>KATEGORİ <span>YÖNETİMİ</span></h1>
+        </div>
+        <button class="btn btn-red" onclick="modalAc('kategori-ekle-modal')">+ KATEGORİ EKLE</button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <div id="kategoriler-yukleniyor" class="loading"><div class="loading-spinner"></div> Yükleniyor...</div>
+          <table class="tablo" id="kategoriler-tablo" style="display:none;">
+            <thead>
+              <tr><th>ID</th><th>Ad</th><th>Açıklama</th><th>Stok</th><th>Durum</th><th>İşlem</th></tr>
+            </thead>
+            <tbody id="kategoriler-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Kategori Ekle Modal -->
+<div class="modal-overlay" id="kategori-ekle-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">KATEGORİ EKLE</span>
+      <button class="modal-close" onclick="modalKapat('kategori-ekle-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="kategori-form">
+        <div class="form-group">
+          <label class="form-label">Kategori Adı</label>
+          <input type="text" class="form-input" id="kat-ad" placeholder="Örn: Bronze Hesaplar" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Açıklama</label>
+          <textarea class="form-input" id="kat-aciklama" placeholder="Kategori açıklaması..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Resim URL (İsteğe bağlı)</label>
+          <input type="text" class="form-input" id="kat-resim" placeholder="https://..." />
+        </div>
+        <div class="flex-between mt-3">
+          <button type="button" class="btn btn-ghost" onclick="modalKapat('kategori-ekle-modal')">İPTAL</button>
+          <button type="submit" class="btn btn-red">EKLE</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  const k = oturumKontrol('yetkili');
+  navbarGuncelle();
+
+  if (k) istatistikYukle();
+
+  // Kategorileri form selectlere doldur
+  async function kategoriSelectDoldur() {
+    try {
+      const kategoriler = await Yetkili.kategorilerGetir();
+      const options = kategoriler.map(k => `<option value="${k.id}">${k.ad}</option>`).join('');
+      document.getElementById('tekli-kategori').innerHTML = '<option value="">Seçin...</option>' + options;
+      document.getElementById('toplu-kategori').innerHTML = '<option value="">Seçin...</option>' + options;
+      document.getElementById('stok-filtre-kategori').innerHTML = '<option value="">Tüm Kategoriler</option>' + options;
+    } catch {}
+  }
+  kategoriSelectDoldur();
+
+  async function istatistikYukle() {
+    try {
+      const data = await Yetkili.istatistik();
+      document.getElementById('stat-stokta').textContent = data.stokta_hesap;
+      document.getElementById('stat-satilan').textContent = data.satilan_hesap;
+      document.getElementById('stat-kategori').textContent = data.aktif_kategori;
+      document.getElementById('stat-uye').textContent = data.toplam_uye;
+    } catch {}
+  }
+
+  // Tekli ekleme
+  document.getElementById('tekli-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await Yetkili.hesapEkle({
+        kategori_id: document.getElementById('tekli-kategori').value,
+        kullanici_adi: document.getElementById('tekli-kullanici').value,
+        sifre: document.getElementById('tekli-sifre').value,
+        puan_fiyati: parseInt(document.getElementById('tekli-puan').value)
+      });
+      toast('Hesap stoka eklendi!', 'basari');
+      e.target.reset();
+      istatistikYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  });
+
+  // Toplu ekleme
+  document.getElementById('toplu-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+    btn.textContent = 'EKLENİYOR...';
+    try {
+      const sonuc = await Yetkili.topluHesapEkle({
+        kategori_id: document.getElementById('toplu-kategori').value,
+        hesaplar: document.getElementById('toplu-hesaplar').value,
+        puan_fiyati: parseInt(document.getElementById('toplu-puan').value)
+      });
+      toast(sonuc.mesaj, 'basari');
+      e.target.reset();
+      istatistikYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'TOPLU EKLE';
+    }
+  });
+
+  // Stok listesi
+  async function stoklariYukle() {
+    document.getElementById('stoklar-yukleniyor').style.display = 'flex';
+    document.getElementById('stoklar-tablo').style.display = 'none';
+    try {
+      const params = {};
+      const durum = document.getElementById('stok-filtre-durum').value;
+      const kat = document.getElementById('stok-filtre-kategori').value;
+      if (durum) params.durum = durum;
+      if (kat) params.kategori_id = kat;
+
+      const stoklar = await Yetkili.stoklariGetir(params);
+      document.getElementById('stoklar-yukleniyor').style.display = 'none';
+      document.getElementById('stoklar-tablo').style.display = 'table';
+
+      document.getElementById('stoklar-tbody').innerHTML = stoklar.map(s => `
+        <tr>
+          <td>${s.id}</td>
+          <td><span class="badge badge-blue">${s.kategori}</span></td>
+          <td style="font-family:monospace; color:var(--val-white);">${s.kullanici_adi}</td>
+          <td style="color:var(--val-red); font-weight:700;">${s.puan_fiyati}</td>
+          <td><span class="badge ${s.durum === 'stokta' ? 'badge-green' : 'badge-gray'}">${s.durum}</span></td>
+          <td style="font-size:12px;">${tarihFormatla(s.olusturma_tarihi)}</td>
+          <td>
+            ${s.durum === 'stokta' ? `<button class="btn btn-ghost btn-sm" onclick="hesapSil(${s.id}, this)" style="color:var(--val-red);">SİL</button>` : '—'}
+          </td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      toast('Stoklar yüklenemedi.', 'hata');
+    }
+  }
+
+  async function hesapSil(id, btn) {
+    if (!confirm('Bu hesabı silmek istediğinize emin misiniz?')) return;
+    btn.disabled = true;
+    try {
+      await Yetkili.hesapSil(id);
+      toast('Hesap silindi.', 'basari');
+      stoklariYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+      btn.disabled = false;
+    }
+  }
+
+  // Kategoriler
+  async function kategorileriYukle() {
+    document.getElementById('kategoriler-yukleniyor').style.display = 'flex';
+    document.getElementById('kategoriler-tablo').style.display = 'none';
+    try {
+      const kategoriler = await Yetkili.kategorilerGetir();
+      document.getElementById('kategoriler-yukleniyor').style.display = 'none';
+      document.getElementById('kategoriler-tablo').style.display = 'table';
+
+      document.getElementById('kategoriler-tbody').innerHTML = kategoriler.map(k => `
+        <tr>
+          <td>${k.id}</td>
+          <td style="color:var(--val-white); font-weight:700;">${k.ad}</td>
+          <td style="font-size:13px;">${k.aciklama || '—'}</td>
+          <td>${k.aktif_stok || 0} / ${k.toplam_stok || 0}</td>
+          <td><span class="badge ${k.aktif ? 'badge-green' : 'badge-red'}">${k.aktif ? 'Aktif' : 'Pasif'}</span></td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="kategoriDurumDegistir(${k.id}, ${k.aktif ? 0 : 1})">
+              ${k.aktif ? 'PASİF YAP' : 'AKTİF YAP'}
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      toast('Kategoriler yüklenemedi.', 'hata');
+    }
+  }
+
+  async function kategoriDurumDegistir(id, yeniDurum) {
+    try {
+      const kategoriler = await Yetkili.kategorilerGetir();
+      const kat = kategoriler.find(k => k.id === id);
+      await Yetkili.kategoriGuncelle(id, { ...kat, aktif: yeniDurum });
+      toast('Kategori güncellendi.', 'basari');
+      kategorileriYukle();
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  }
+
+  // Kategori Ekle
+  document.getElementById('kategori-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await Yetkili.kategoriEkle({
+        ad: document.getElementById('kat-ad').value,
+        aciklama: document.getElementById('kat-aciklama').value,
+        resim_url: document.getElementById('kat-resim').value
+      });
+      toast('Kategori eklendi!', 'basari');
+      modalKapat('kategori-ekle-modal');
+      e.target.reset();
+      kategorileriYukle();
+      kategoriSelectDoldur();
+    } catch (err) {
+      toast(err.message, 'hata');
+    }
+  });
+</script>
+</body>
+</html>
