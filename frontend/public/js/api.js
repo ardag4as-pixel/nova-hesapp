@@ -1,7 +1,5 @@
 // API URL
-const API_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:3000/api'
-  : 'https://nova-hesapp.onrender.com/api';
+const API_URL = 'https://nova-hesapp.onrender.com/api';
 
 // Token yönetimi
 const token = {
