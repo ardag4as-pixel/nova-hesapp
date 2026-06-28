@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS kullanicilar (
   davet_kodu VARCHAR(20) UNIQUE,
   davet_eden_id INT DEFAULT NULL,
   aktif TINYINT(1) DEFAULT 1,
-  olusturma_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+  olusturma_tarihi DATETIME,
   FOREIGN KEY (davet_eden_id) REFERENCES kullanicilar(id) ON DELETE SET NULL
 );
 
